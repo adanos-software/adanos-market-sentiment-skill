@@ -96,16 +96,59 @@ function assertStockPlatform(platform, command) {
   }
 }
 
-function appendWindowParams(params, opts) {
-  for (const key of ["days", "from", "to", "limit", "offset", "type", "source"]) {
+function appendParams(params, opts, keys) {
+  for (const key of keys) {
     if (opts[key] !== undefined && opts[key] !== true) params.set(key, String(opts[key]));
   }
+}
+
+function appendWindowParams(params, opts) {
+  appendParams(params, opts, ["days", "from", "to"]);
+}
+
+function appendPagingParams(params, opts) {
+  appendParams(params, opts, ["limit", "offset"]);
+}
+
+function appendTrendingParams(params, opts, platform) {
+  appendWindowParams(params, opts);
+  appendPagingParams(params, opts);
+  if (platform !== "crypto" && opts.type !== undefined && opts.type !== true) {
+    params.set("type", String(opts.type));
+  }
+  if (platform === "news" && opts.source !== undefined && opts.source !== true) {
+    params.set("source", String(opts.source));
+  }
+}
+
+function appendDimensionParams(params, opts, platform) {
+  appendWindowParams(params, opts);
+  appendPagingParams(params, opts);
+  if (platform === "news" && opts.source !== undefined && opts.source !== true) {
+    params.set("source", String(opts.source));
+  }
+}
+
+function appendMentionsParams(params, opts, platform) {
+  appendWindowParams(params, opts);
+  appendPagingParams(params, opts);
   if (opts.include_inherited !== undefined) {
+    if (!["reddit", "crypto"].includes(platform)) {
+      throw new Error("--include_inherited is supported only for Reddit stock and crypto mentions.");
+    }
     params.set("include_inherited", String(opts.include_inherited));
   }
   if (opts.includeInherited !== undefined) {
+    if (!["reddit", "crypto"].includes(platform)) {
+      throw new Error("--includeInherited is supported only for Reddit stock and crypto mentions.");
+    }
     params.set("include_inherited", String(opts.includeInherited));
   }
+}
+
+function validateAnalyzeText(text) {
+  if (text.length < 1) throw new Error("--text must not be empty.");
+  if (text.length > 2048) throw new Error("--text must be 2048 characters or fewer.");
 }
 
 function validatePlan(opts, professionalOnly = false) {
@@ -141,7 +184,7 @@ function buildPath(command, opts) {
 
     case "trending": {
       const platform = normalizePlatform(requireOption(opts, "platform"));
-      appendWindowParams(params, opts);
+      appendTrendingParams(params, opts, platform);
       return { method: "GET", path: `${PLATFORM_BASES[platform]}/trending`, params };
     }
 
@@ -149,7 +192,7 @@ function buildPath(command, opts) {
     case "trending-countries": {
       const platform = normalizePlatform(requireOption(opts, "platform"));
       assertStockPlatform(platform, command);
-      appendWindowParams(params, opts);
+      appendDimensionParams(params, opts, platform);
       const dimension = command === "trending-sectors" ? "sectors" : "countries";
       return { method: "GET", path: `${PLATFORM_BASES[platform]}/trending/${dimension}`, params };
     }
@@ -165,7 +208,7 @@ function buildPath(command, opts) {
 
     case "mentions": {
       const platform = normalizePlatform(requireOption(opts, "platform"));
-      appendWindowParams(params, opts);
+      appendMentionsParams(params, opts, platform);
       if (platform === "crypto") {
         return { method: "GET", path: `${PLATFORM_BASES[platform]}/token/${encodeURIComponent(requireOption(opts, "symbol").toUpperCase())}/mentions`, params, professionalOnly: true };
       }
@@ -210,6 +253,7 @@ function buildPath(command, opts) {
     }
 
     case "analyze":
+      validateAnalyzeText(requireOption(opts, "text"));
       return {
         method: "POST",
         path: "/sentiment/v1/analyze",

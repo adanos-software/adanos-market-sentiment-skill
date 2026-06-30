@@ -6,10 +6,10 @@
   "description": "Official Adanos Market Sentiment skill for agentic finance workflows.",
   "scripts": {
     "test": "node --test skills/adanos-market-sentiment/test/*.test.mjs",
-    "check": "npm test && npx --yes skills add . --list"
+    "check": "npm test && npx --yes skills add . --list",
+    "check:openapi": "node scripts/check-openapi-coverage.mjs"
   },
   "engines": {
     "node": ">=18"
   }
 }
-

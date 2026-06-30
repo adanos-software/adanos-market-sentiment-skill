@@ -4,11 +4,12 @@ import { test } from "node:test";
 import { buildPath, buildUrl, parseArgs, validatePlan } from "../scripts/adanos.mjs";
 
 test("builds stock trending endpoint with query params", () => {
-  const spec = buildPath("trending", { platform: "reddit", days: "7", limit: "5" });
+  const spec = buildPath("trending", { platform: "reddit", days: "7", limit: "5", type: "stock" });
   assert.equal(spec.method, "GET");
   assert.equal(spec.path, "/reddit/stocks/v1/trending");
   assert.equal(spec.params.get("days"), "7");
   assert.equal(spec.params.get("limit"), "5");
+  assert.equal(spec.params.get("type"), "stock");
 });
 
 test("builds crypto token detail endpoint", () => {
@@ -29,12 +30,38 @@ test("marks raw mentions as professional only", () => {
   assert.equal(spec.professionalOnly, true);
 });
 
+test("keeps source filters scoped to news endpoints", () => {
+  const news = buildPath("trending-sectors", { platform: "news", source: "reuters", days: "14" });
+  assert.equal(news.params.get("source"), "reuters");
+
+  const reddit = buildPath("trending-sectors", { platform: "reddit", source: "reuters", days: "14" });
+  assert.equal(reddit.params.has("source"), false);
+});
+
+test("keeps include_inherited scoped to Reddit mention endpoints", () => {
+  const reddit = buildPath("mentions", { platform: "reddit", ticker: "tsla", include_inherited: "true" });
+  assert.equal(reddit.params.get("include_inherited"), "true");
+
+  const crypto = buildPath("mentions", { platform: "crypto", symbol: "btc", includeInherited: "false" });
+  assert.equal(crypto.params.get("include_inherited"), "false");
+
+  assert.throws(
+    () => buildPath("mentions", { platform: "x", ticker: "nvda", include_inherited: "true" }),
+    /supported only for Reddit stock and crypto mentions/
+  );
+});
+
 test("marks text sentiment as professional only", () => {
   const spec = buildPath("analyze", { text: "Bullish setup" });
   assert.equal(spec.method, "POST");
   assert.equal(spec.path, "/sentiment/v1/analyze");
   assert.deepEqual(spec.body, { text: "Bullish setup" });
   assert.equal(spec.professionalOnly, true);
+});
+
+test("validates text sentiment length", () => {
+  assert.throws(() => buildPath("analyze", { text: "" }), /Missing required --text/);
+  assert.throws(() => buildPath("analyze", { text: "x".repeat(2049) }), /2048 characters or fewer/);
 });
 
 test("validates plan historical windows", () => {

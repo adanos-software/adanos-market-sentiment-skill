@@ -60,7 +60,10 @@ See [plans.md](skills/adanos-market-sentiment/references/plans.md) for details.
 
 ```bash
 npm test
+npm run check:openapi
 npx skills add . --list
 npx skills use .@adanos-market-sentiment
 ```
 
+`npm run check:openapi` compares the structured CLI commands against the live
+OpenAPI document at `https://api.adanos.org/openapi.json`.
