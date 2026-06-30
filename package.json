@@ -1,0 +1,15 @@
+{
+  "name": "adanos-market-sentiment-skill",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Official Adanos Market Sentiment skill for agentic finance workflows.",
+  "scripts": {
+    "test": "node --test skills/adanos-market-sentiment/test/*.test.mjs",
+    "check": "npm test && npx --yes skills add . --list"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
+
