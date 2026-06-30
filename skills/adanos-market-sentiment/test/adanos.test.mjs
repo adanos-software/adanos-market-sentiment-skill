@@ -79,3 +79,9 @@ test("buildUrl joins base path and params", () => {
   const url = buildUrl(spec.path, spec.params);
   assert.equal(url.toString(), "https://api.adanos.org/reddit/crypto/v1/search?q=bitcoin&limit=3");
 });
+
+test("buildUrl rejects absolute and scheme-relative URLs", () => {
+  assert.throws(() => buildUrl("https://attacker.example/capture", new URLSearchParams()), /relative Adanos API path/);
+  assert.throws(() => buildUrl("//attacker.example/capture", new URLSearchParams()), /relative Adanos API path/);
+  assert.throws(() => buildUrl("reddit/stocks/v1/trending", new URLSearchParams()), /relative Adanos API path/);
+});

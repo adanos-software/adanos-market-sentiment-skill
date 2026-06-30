@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const BASE_URL = process.env.ADANOS_BASE_URL || "https://api.adanos.org";
+const BASE_ORIGIN = new URL(BASE_URL).origin;
 
 const STOCK_BASES = {
   reddit: "/reddit/stocks/v1",
@@ -243,15 +244,21 @@ function buildPath(command, opts) {
 }
 
 function buildUrl(path, params) {
+  if (!path.startsWith("/") || path.startsWith("//")) {
+    throw new Error("Path must be a relative Adanos API path beginning with a single '/'.");
+  }
   const url = new URL(path, BASE_URL);
+  if (url.origin !== BASE_ORIGIN) {
+    throw new Error("Refusing to call a non-Adanos URL.");
+  }
   for (const [key, value] of params.entries()) url.searchParams.append(key, value);
   return url;
 }
 
-function authHeaders(path, method) {
+function authHeaders(url, method) {
   const headers = { Accept: "application/json" };
   if (method !== "GET") headers["Content-Type"] = "application/json";
-  if (path !== "/health" && process.env.ADANOS_API_KEY) {
+  if (url.origin === BASE_ORIGIN && url.pathname !== "/health" && process.env.ADANOS_API_KEY) {
     headers["X-API-Key"] = process.env.ADANOS_API_KEY;
   }
   return headers;
@@ -271,7 +278,7 @@ async function request(spec) {
   const url = buildUrl(spec.path, spec.params);
   const res = await fetch(url, {
     method: spec.method,
-    headers: authHeaders(spec.path, spec.method),
+    headers: authHeaders(url, spec.method),
     body: spec.body ? JSON.stringify(spec.body) : undefined,
   });
   const text = await res.text();
