@@ -151,7 +151,45 @@ function validateAnalyzeText(text) {
   if (text.length > 2048) throw new Error("--text must be 2048 characters or fewer.");
 }
 
-function validatePlan(opts, professionalOnly = false) {
+function parseUtcDate(value, option) {
+  const text = String(value);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+    throw new Error(`--${option} must use YYYY-MM-DD.`);
+  }
+  const timestamp = Date.parse(`${text}T00:00:00Z`);
+  if (!Number.isFinite(timestamp) || new Date(timestamp).toISOString().slice(0, 10) !== text) {
+    throw new Error(`--${option} must be a valid UTC calendar date.`);
+  }
+  return timestamp;
+}
+
+function requestedWindowDays(opts) {
+  const hasFrom = opts.from !== undefined;
+  const hasTo = opts.to !== undefined;
+  if (opts.days !== undefined && (hasFrom || hasTo)) {
+    throw new Error("Use either deprecated --days or --from/--to, not both.");
+  }
+  if (hasFrom !== hasTo) {
+    throw new Error("--from and --to must be provided together.");
+  }
+  if (hasFrom) {
+    const from = parseUtcDate(opts.from, "from");
+    const to = parseUtcDate(opts.to, "to");
+    if (from > to) throw new Error("--from must not be later than --to.");
+    return Math.floor((to - from) / 86_400_000) + 1;
+  }
+  if (opts.days !== undefined) {
+    const days = Number(opts.days);
+    if (!Number.isInteger(days) || days < 1) {
+      throw new Error("--days must be a positive integer.");
+    }
+    return days;
+  }
+  return undefined;
+}
+
+function validatePlan(opts, professionalOnly = false, now = new Date()) {
+  const windowDays = requestedWindowDays(opts);
   const rawPlan = opts.plan ? String(opts.plan).toLowerCase() : undefined;
   if (!rawPlan) return;
   const plan = PLAN_LIMITS[rawPlan];
@@ -161,11 +199,18 @@ function validatePlan(opts, professionalOnly = false) {
   if (professionalOnly && !plan.professional) {
     throw new Error(`This endpoint requires --plan professional. ${rawPlan} cannot access it.`);
   }
-  if (opts.days !== undefined) {
-    const days = Number(opts.days);
-    if (!Number.isFinite(days) || days < 1) throw new Error("--days must be a positive number.");
-    if (days > plan.maxDays) {
-      throw new Error(`${rawPlan} plan supports up to ${plan.maxDays} historical days; requested ${days}.`);
+  if (windowDays !== undefined && windowDays > plan.maxDays) {
+    throw new Error(`${rawPlan} plan supports up to ${plan.maxDays} historical days; requested ${windowDays}.`);
+  }
+  if (opts.from !== undefined && opts.to !== undefined) {
+    const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    const from = parseUtcDate(opts.from, "from");
+    const to = parseUtcDate(opts.to, "to");
+    const earliest = today - (plan.maxDays - 1) * 86_400_000;
+    if (to > today) throw new Error("--to must not be later than the current UTC date.");
+    if (from < earliest) {
+      const cutoff = new Date(earliest).toISOString().slice(0, 10);
+      throw new Error(`${rawPlan} plan historical data starts at ${cutoff} for the current UTC date.`);
     }
   }
 }
@@ -348,25 +393,25 @@ function help() {
 Usage:
   adanos.mjs health
   adanos.mjs platform-health --platform reddit
-  adanos.mjs trending --platform reddit|x|news|polymarket|crypto [--days 7] [--limit 10]
+  adanos.mjs trending --platform reddit|x|news|polymarket|crypto [--from YYYY-MM-DD --to YYYY-MM-DD] [--limit 10]
   adanos.mjs trending-sectors --platform reddit|x|news|polymarket
   adanos.mjs trending-countries --platform reddit|x|news|polymarket
-  adanos.mjs asset --platform reddit|x|news|polymarket --ticker TSLA [--days 30]
-  adanos.mjs asset --platform crypto --symbol BTC [--days 7]
+  adanos.mjs asset --platform reddit|x|news|polymarket --ticker TSLA [--from YYYY-MM-DD --to YYYY-MM-DD]
+  adanos.mjs asset --platform crypto --symbol BTC [--from YYYY-MM-DD --to YYYY-MM-DD]
   adanos.mjs compare --platform reddit|x|news|polymarket --tickers TSLA,NVDA
   adanos.mjs compare --platform crypto --symbols BTC,ETH
-  adanos.mjs market-sentiment --platform news [--days 30]
+  adanos.mjs market-sentiment --platform news [--from YYYY-MM-DD --to YYYY-MM-DD]
   adanos.mjs search --platform reddit --q tesla [--limit 10]
   adanos.mjs stats --platform polymarket
   adanos.mjs explain --platform reddit|x|news --ticker TSLA
   adanos.mjs mentions --platform x --ticker NVDA --plan professional
   adanos.mjs analyze --text "NVDA guidance looks bullish" --plan professional
-  adanos.mjs request GET /reddit/stocks/v1/trending --query days=7 --query limit=5
+  adanos.mjs request GET /reddit/stocks/v1/trending --query from=YYYY-MM-DD --query to=YYYY-MM-DD --query limit=5
 
 Plans:
-  --plan free          validates days <= 30 and blocks Professional-only endpoints
-  --plan hobby         validates days <= 90 and blocks Professional-only endpoints
-  --plan professional  validates days <= 365 and allows raw mentions/text sentiment
+  --plan free          validates windows <= 30 days and blocks Professional-only endpoints
+  --plan hobby         validates windows <= 90 days and blocks Professional-only endpoints
+  --plan professional  validates windows <= 365 days and allows raw mentions/text sentiment
 `;
 }
 
@@ -403,5 +448,6 @@ export {
   buildPath,
   buildUrl,
   parseArgs,
+  requestedWindowDays,
   validatePlan,
 };

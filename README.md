@@ -38,8 +38,8 @@ Get a key at [adanos.org/register](https://adanos.org/register).
 The skill includes a small dependency-free Node.js helper:
 
 ```bash
-node skills/adanos-market-sentiment/scripts/adanos.mjs trending --platform reddit --days 7 --limit 5
-node skills/adanos-market-sentiment/scripts/adanos.mjs asset --platform news --ticker NVDA --days 14
+node skills/adanos-market-sentiment/scripts/adanos.mjs trending --platform reddit --from YYYY-MM-DD --to YYYY-MM-DD --limit 5
+node skills/adanos-market-sentiment/scripts/adanos.mjs asset --platform news --ticker NVDA --from YYYY-MM-DD --to YYYY-MM-DD
 node skills/adanos-market-sentiment/scripts/adanos.mjs analyze --text "TSLA looks like a short squeeze setup"
 ```
 

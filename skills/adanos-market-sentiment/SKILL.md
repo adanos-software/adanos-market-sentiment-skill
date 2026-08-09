@@ -8,12 +8,23 @@ description: |
   text sentiment analysis. Requires ADANOS_API_KEY for protected endpoints. Free and
   Hobby plans can use aggregate/search/detail endpoints within their historical windows;
   Professional is required for raw mention endpoints and /sentiment/v1/analyze.
-license: MIT
 metadata:
   author: adanos-software
-  version: "0.1.0"
+  version: "0.2.0"
   homepage: "https://adanos.org/"
   documentation: "https://api.adanos.org/docs"
+  openclaw:
+    requires:
+      env:
+        - ADANOS_API_KEY
+      bins:
+        - node
+    primaryEnv: ADANOS_API_KEY
+    envVars:
+      - name: ADANOS_API_KEY
+        required: true
+        description: Adanos API key created at https://adanos.org/register
+    homepage: "https://adanos.org/"
 ---
 
 # Adanos Market Sentiment
@@ -45,7 +56,7 @@ The bundled helper is dependency-free and uses Node.js `fetch`:
 
 ```bash
 node <skill-dir>/scripts/adanos.mjs health
-node <skill-dir>/scripts/adanos.mjs trending --platform reddit --days 7 --limit 5
+node <skill-dir>/scripts/adanos.mjs trending --platform reddit --from YYYY-MM-DD --to YYYY-MM-DD --limit 5
 ```
 
 If Node.js is unavailable, use the curl patterns in `references/api.md`.
@@ -78,20 +89,20 @@ under `_headers` when the API returns them.
 |-------------|---------|
 | API health | `node <skill-dir>/scripts/adanos.mjs health` |
 | Platform health | `node <skill-dir>/scripts/adanos.mjs platform-health --platform reddit` |
-| Trending stocks/tokens | `node <skill-dir>/scripts/adanos.mjs trending --platform reddit --days 7 --limit 10` |
-| Trending sectors | `node <skill-dir>/scripts/adanos.mjs trending-sectors --platform news --days 14` |
-| Trending countries | `node <skill-dir>/scripts/adanos.mjs trending-countries --platform x --days 14` |
-| One stock detail | `node <skill-dir>/scripts/adanos.mjs asset --platform news --ticker NVDA --days 30` |
-| One crypto token detail | `node <skill-dir>/scripts/adanos.mjs asset --platform crypto --symbol BTC --days 7` |
-| Compare stocks | `node <skill-dir>/scripts/adanos.mjs compare --platform polymarket --tickers TSLA,NVDA,AMD --days 30` |
-| Compare crypto tokens | `node <skill-dir>/scripts/adanos.mjs compare --platform crypto --symbols BTC,ETH,SOL --days 7` |
-| Market-wide sentiment | `node <skill-dir>/scripts/adanos.mjs market-sentiment --platform reddit --days 7` |
+| Trending stocks/tokens | `node <skill-dir>/scripts/adanos.mjs trending --platform reddit --from YYYY-MM-DD --to YYYY-MM-DD --limit 10` |
+| Trending sectors | `node <skill-dir>/scripts/adanos.mjs trending-sectors --platform news --from YYYY-MM-DD --to YYYY-MM-DD` |
+| Trending countries | `node <skill-dir>/scripts/adanos.mjs trending-countries --platform x --from YYYY-MM-DD --to YYYY-MM-DD` |
+| One stock detail | `node <skill-dir>/scripts/adanos.mjs asset --platform news --ticker NVDA --from YYYY-MM-DD --to YYYY-MM-DD` |
+| One crypto token detail | `node <skill-dir>/scripts/adanos.mjs asset --platform crypto --symbol BTC --from YYYY-MM-DD --to YYYY-MM-DD` |
+| Compare stocks | `node <skill-dir>/scripts/adanos.mjs compare --platform polymarket --tickers TSLA,NVDA,AMD --from YYYY-MM-DD --to YYYY-MM-DD` |
+| Compare crypto tokens | `node <skill-dir>/scripts/adanos.mjs compare --platform crypto --symbols BTC,ETH,SOL --from YYYY-MM-DD --to YYYY-MM-DD` |
+| Market-wide sentiment | `node <skill-dir>/scripts/adanos.mjs market-sentiment --platform reddit --from YYYY-MM-DD --to YYYY-MM-DD` |
 | Search supported assets | `node <skill-dir>/scripts/adanos.mjs search --platform reddit --q tesla` |
 | Service stats | `node <skill-dir>/scripts/adanos.mjs stats --platform news` |
 | AI trend explanation | `node <skill-dir>/scripts/adanos.mjs explain --platform reddit --ticker TSLA` |
-| Raw evidence rows | `node <skill-dir>/scripts/adanos.mjs mentions --platform x --ticker NVDA --days 7 --limit 20 --plan professional` |
+| Raw evidence rows | `node <skill-dir>/scripts/adanos.mjs mentions --platform x --ticker NVDA --from YYYY-MM-DD --to YYYY-MM-DD --limit 20 --plan professional` |
 | Analyze custom text | `node <skill-dir>/scripts/adanos.mjs analyze --text "NVDA guidance looks bullish" --plan professional` |
-| Any endpoint | `node <skill-dir>/scripts/adanos.mjs request GET /reddit/stocks/v1/trending --query days=7 --query limit=5` |
+| Any endpoint | `node <skill-dir>/scripts/adanos.mjs request GET /reddit/stocks/v1/trending --query from=YYYY-MM-DD --query to=YYYY-MM-DD --query limit=5` |
 
 ## Platform Names
 
@@ -107,8 +118,9 @@ Use these CLI platform names:
 
 ## Query Window Rules
 
-- Prefer `--days` for simple requests.
-- Use `--from YYYY-MM-DD --to YYYY-MM-DD` for calendar-anchored analysis.
+- Use `--from YYYY-MM-DD --to YYYY-MM-DD` with inclusive UTC dates.
+- Choose dates within the plan's historical reach relative to the current UTC day.
+- Treat `--days` as deprecated compatibility syntax; do not recommend it for new calls.
 - Do not exceed the user's plan window.
 - `trend` is activity momentum, not price movement.
 - `buzz_score` is a normalized attention/activity score from 0-100.
@@ -139,4 +151,3 @@ Do not invent unsupported sources. If source filtering is important, call
 - Plan and quota rules: `references/plans.md`
 - Live API docs: `https://api.adanos.org/docs`
 - OpenAPI JSON: `https://api.adanos.org/openapi.json`
-
