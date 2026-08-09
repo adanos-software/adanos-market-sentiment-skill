@@ -406,7 +406,7 @@ Usage:
   adanos.mjs explain --platform reddit|x|news --ticker TSLA
   adanos.mjs mentions --platform x --ticker NVDA --plan professional
   adanos.mjs analyze --text "NVDA guidance looks bullish" --plan professional
-  adanos.mjs request GET /reddit/stocks/v1/trending --query from=2026-07-01 --query to=2026-07-07 --query limit=5
+  adanos.mjs request GET /reddit/stocks/v1/trending --query from=YYYY-MM-DD --query to=YYYY-MM-DD --query limit=5
 
 Plans:
   --plan free          validates windows <= 30 days and blocks Professional-only endpoints
