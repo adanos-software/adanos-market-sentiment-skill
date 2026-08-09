@@ -32,14 +32,16 @@ Professional only:
 
 ## Historical Windows
 
-When the user has not specified a plan, prefer conservative windows:
+When the user has not specified a plan, prefer conservative explicit UTC windows:
 
-- use `days <= 30` for Free-safe answers
+- keep inclusive `--from`/`--to` windows at 30 calendar days or fewer for Free-safe answers
 - ask before using a longer window
 - use `--plan hobby` for windows up to 90 days
 - use `--plan professional` for windows up to 365 days or raw evidence
 
-The CLI validates `--days` against `--plan` when a plan is provided.
+The CLI validates inclusive `--from`/`--to` windows against `--plan` when a
+plan is provided. The API's `days` shorthand is deprecated and retained by the
+helper only for compatibility.
 
 ## Quota Headers
 
@@ -59,4 +61,3 @@ When a user is near quota exhaustion, prefer fewer broader calls:
 - compare endpoint instead of many detail calls
 - trending endpoint with a larger `limit` instead of repeated pages
 - raw mentions only when evidence rows are specifically needed
-

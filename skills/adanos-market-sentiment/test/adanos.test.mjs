@@ -1,21 +1,23 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { buildPath, buildUrl, parseArgs, validatePlan } from "../scripts/adanos.mjs";
+import { buildPath, buildUrl, parseArgs, requestedWindowDays, validatePlan } from "../scripts/adanos.mjs";
 
 test("builds stock trending endpoint with query params", () => {
-  const spec = buildPath("trending", { platform: "reddit", days: "7", limit: "5", type: "stock" });
+  const spec = buildPath("trending", { platform: "reddit", from: "2026-07-01", to: "2026-07-07", limit: "5", type: "stock" });
   assert.equal(spec.method, "GET");
   assert.equal(spec.path, "/reddit/stocks/v1/trending");
-  assert.equal(spec.params.get("days"), "7");
+  assert.equal(spec.params.get("from"), "2026-07-01");
+  assert.equal(spec.params.get("to"), "2026-07-07");
   assert.equal(spec.params.get("limit"), "5");
   assert.equal(spec.params.get("type"), "stock");
 });
 
 test("builds crypto token detail endpoint", () => {
-  const spec = buildPath("asset", { platform: "crypto", symbol: "btc", days: "3" });
+  const spec = buildPath("asset", { platform: "crypto", symbol: "btc", from: "2026-07-01", to: "2026-07-03" });
   assert.equal(spec.path, "/reddit/crypto/v1/token/BTC");
-  assert.equal(spec.params.get("days"), "3");
+  assert.equal(spec.params.get("from"), "2026-07-01");
+  assert.equal(spec.params.get("to"), "2026-07-03");
 });
 
 test("builds stock comparison endpoint", () => {
@@ -65,11 +67,20 @@ test("validates text sentiment length", () => {
 });
 
 test("validates plan historical windows", () => {
-  assert.doesNotThrow(() => validatePlan({ plan: "free", days: "30" }));
-  assert.throws(() => validatePlan({ plan: "free", days: "31" }), /supports up to 30/);
-  assert.doesNotThrow(() => validatePlan({ plan: "hobby", days: "90" }));
-  assert.throws(() => validatePlan({ plan: "hobby", days: "91" }), /supports up to 90/);
-  assert.doesNotThrow(() => validatePlan({ plan: "professional", days: "365" }));
+  assert.doesNotThrow(() => validatePlan({ plan: "free", from: "2026-07-01", to: "2026-07-30" }));
+  assert.throws(() => validatePlan({ plan: "free", from: "2026-07-01", to: "2026-07-31" }), /supports up to 30/);
+  assert.doesNotThrow(() => validatePlan({ plan: "hobby", from: "2026-05-01", to: "2026-07-29" }));
+  assert.throws(() => validatePlan({ plan: "hobby", from: "2026-05-01", to: "2026-07-30" }), /supports up to 90/);
+  assert.doesNotThrow(() => validatePlan({ plan: "professional", from: "2025-08-10", to: "2026-08-09" }));
+});
+
+test("validates explicit UTC dates before plan lookup", () => {
+  assert.equal(requestedWindowDays({ from: "2026-07-01", to: "2026-07-07" }), 7);
+  assert.throws(() => validatePlan({ from: "2026-02-30", to: "2026-03-01" }), /valid UTC calendar date/);
+  assert.throws(() => validatePlan({ from: "2026-07-02", to: "2026-07-01" }), /must not be later/);
+  assert.throws(() => validatePlan({ from: "2026-07-01" }), /provided together/);
+  assert.throws(() => validatePlan({ days: "7", from: "2026-07-01", to: "2026-07-07" }), /not both/);
+  assert.throws(() => validatePlan({ days: "1.5" }), /positive integer/);
 });
 
 test("blocks professional-only endpoints for free and hobby", () => {
@@ -84,13 +95,16 @@ test("builds generic request endpoint with repeated query params", () => {
     "GET",
     "/reddit/stocks/v1/trending",
     "--query",
-    "days=7",
+    "from=2026-07-01",
+    "--query",
+    "to=2026-07-07",
     "--query",
     "limit=5",
   ]);
   const spec = buildPath(command, opts);
   assert.equal(spec.path, "/reddit/stocks/v1/trending");
-  assert.equal(spec.params.get("days"), "7");
+  assert.equal(spec.params.get("from"), "2026-07-01");
+  assert.equal(spec.params.get("to"), "2026-07-07");
   assert.equal(spec.params.get("limit"), "5");
 });
 

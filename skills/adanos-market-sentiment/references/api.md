@@ -12,14 +12,13 @@ Protected endpoints require:
 
 Most aggregate endpoints accept:
 
-- `days`: integer historical lookback
 - `from`: `YYYY-MM-DD` lower bound
 - `to`: `YYYY-MM-DD` upper bound
 - `limit`: page size
 - `offset`: page offset
 
-Use either `days` or `from`/`to`, not both unless the user explicitly asks for
-debugging.
+Use explicit inclusive UTC `from`/`to` dates. The `days` lookback shorthand is
+deprecated and should not be used for new integrations.
 
 ## Stock Platforms
 
@@ -97,13 +96,13 @@ Request body:
 ## Curl Examples
 
 ```bash
-curl "https://api.adanos.org/reddit/stocks/v1/trending?days=7&limit=5" \
+curl "https://api.adanos.org/reddit/stocks/v1/trending?from=2026-07-01&to=2026-07-07&limit=5" \
   -H "X-API-Key: $ADANOS_API_KEY"
 
-curl "https://api.adanos.org/news/stocks/v1/stock/NVDA?days=30" \
+curl "https://api.adanos.org/news/stocks/v1/stock/NVDA?from=2026-07-01&to=2026-07-30" \
   -H "X-API-Key: $ADANOS_API_KEY"
 
-curl "https://api.adanos.org/reddit/crypto/v1/token/BTC?days=7" \
+curl "https://api.adanos.org/reddit/crypto/v1/token/BTC?from=2026-07-01&to=2026-07-07" \
   -H "X-API-Key: $ADANOS_API_KEY"
 
 curl -X POST "https://api.adanos.org/sentiment/v1/analyze" \
@@ -111,4 +110,3 @@ curl -X POST "https://api.adanos.org/sentiment/v1/analyze" \
   -H "X-API-Key: $ADANOS_API_KEY" \
   -d '{"text":"NVDA guidance looks bullish after the earnings call"}'
 ```
-
