@@ -56,7 +56,7 @@ The bundled helper is dependency-free and uses Node.js `fetch`:
 
 ```bash
 node <skill-dir>/scripts/adanos.mjs health
-node <skill-dir>/scripts/adanos.mjs trending --platform reddit --from 2026-07-01 --to 2026-07-07 --limit 5
+node <skill-dir>/scripts/adanos.mjs trending --platform reddit --from YYYY-MM-DD --to YYYY-MM-DD --limit 5
 ```
 
 If Node.js is unavailable, use the curl patterns in `references/api.md`.
@@ -89,20 +89,20 @@ under `_headers` when the API returns them.
 |-------------|---------|
 | API health | `node <skill-dir>/scripts/adanos.mjs health` |
 | Platform health | `node <skill-dir>/scripts/adanos.mjs platform-health --platform reddit` |
-| Trending stocks/tokens | `node <skill-dir>/scripts/adanos.mjs trending --platform reddit --from 2026-07-01 --to 2026-07-07 --limit 10` |
-| Trending sectors | `node <skill-dir>/scripts/adanos.mjs trending-sectors --platform news --from 2026-07-01 --to 2026-07-14` |
-| Trending countries | `node <skill-dir>/scripts/adanos.mjs trending-countries --platform x --from 2026-07-01 --to 2026-07-14` |
-| One stock detail | `node <skill-dir>/scripts/adanos.mjs asset --platform news --ticker NVDA --from 2026-07-01 --to 2026-07-30` |
-| One crypto token detail | `node <skill-dir>/scripts/adanos.mjs asset --platform crypto --symbol BTC --from 2026-07-01 --to 2026-07-07` |
-| Compare stocks | `node <skill-dir>/scripts/adanos.mjs compare --platform polymarket --tickers TSLA,NVDA,AMD --from 2026-07-01 --to 2026-07-30` |
-| Compare crypto tokens | `node <skill-dir>/scripts/adanos.mjs compare --platform crypto --symbols BTC,ETH,SOL --from 2026-07-01 --to 2026-07-07` |
-| Market-wide sentiment | `node <skill-dir>/scripts/adanos.mjs market-sentiment --platform reddit --from 2026-07-01 --to 2026-07-07` |
+| Trending stocks/tokens | `node <skill-dir>/scripts/adanos.mjs trending --platform reddit --from YYYY-MM-DD --to YYYY-MM-DD --limit 10` |
+| Trending sectors | `node <skill-dir>/scripts/adanos.mjs trending-sectors --platform news --from YYYY-MM-DD --to YYYY-MM-DD` |
+| Trending countries | `node <skill-dir>/scripts/adanos.mjs trending-countries --platform x --from YYYY-MM-DD --to YYYY-MM-DD` |
+| One stock detail | `node <skill-dir>/scripts/adanos.mjs asset --platform news --ticker NVDA --from YYYY-MM-DD --to YYYY-MM-DD` |
+| One crypto token detail | `node <skill-dir>/scripts/adanos.mjs asset --platform crypto --symbol BTC --from YYYY-MM-DD --to YYYY-MM-DD` |
+| Compare stocks | `node <skill-dir>/scripts/adanos.mjs compare --platform polymarket --tickers TSLA,NVDA,AMD --from YYYY-MM-DD --to YYYY-MM-DD` |
+| Compare crypto tokens | `node <skill-dir>/scripts/adanos.mjs compare --platform crypto --symbols BTC,ETH,SOL --from YYYY-MM-DD --to YYYY-MM-DD` |
+| Market-wide sentiment | `node <skill-dir>/scripts/adanos.mjs market-sentiment --platform reddit --from YYYY-MM-DD --to YYYY-MM-DD` |
 | Search supported assets | `node <skill-dir>/scripts/adanos.mjs search --platform reddit --q tesla` |
 | Service stats | `node <skill-dir>/scripts/adanos.mjs stats --platform news` |
 | AI trend explanation | `node <skill-dir>/scripts/adanos.mjs explain --platform reddit --ticker TSLA` |
-| Raw evidence rows | `node <skill-dir>/scripts/adanos.mjs mentions --platform x --ticker NVDA --from 2026-07-01 --to 2026-07-07 --limit 20 --plan professional` |
+| Raw evidence rows | `node <skill-dir>/scripts/adanos.mjs mentions --platform x --ticker NVDA --from YYYY-MM-DD --to YYYY-MM-DD --limit 20 --plan professional` |
 | Analyze custom text | `node <skill-dir>/scripts/adanos.mjs analyze --text "NVDA guidance looks bullish" --plan professional` |
-| Any endpoint | `node <skill-dir>/scripts/adanos.mjs request GET /reddit/stocks/v1/trending --query from=2026-07-01 --query to=2026-07-07 --query limit=5` |
+| Any endpoint | `node <skill-dir>/scripts/adanos.mjs request GET /reddit/stocks/v1/trending --query from=YYYY-MM-DD --query to=YYYY-MM-DD --query limit=5` |
 
 ## Platform Names
 
@@ -119,6 +119,7 @@ Use these CLI platform names:
 ## Query Window Rules
 
 - Use `--from YYYY-MM-DD --to YYYY-MM-DD` with inclusive UTC dates.
+- Choose dates within the plan's historical reach relative to the current UTC day.
 - Treat `--days` as deprecated compatibility syntax; do not recommend it for new calls.
 - Do not exceed the user's plan window.
 - `trend` is activity momentum, not price movement.

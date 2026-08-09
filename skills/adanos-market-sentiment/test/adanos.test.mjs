@@ -67,11 +67,24 @@ test("validates text sentiment length", () => {
 });
 
 test("validates plan historical windows", () => {
-  assert.doesNotThrow(() => validatePlan({ plan: "free", from: "2026-07-01", to: "2026-07-30" }));
-  assert.throws(() => validatePlan({ plan: "free", from: "2026-07-01", to: "2026-07-31" }), /supports up to 30/);
-  assert.doesNotThrow(() => validatePlan({ plan: "hobby", from: "2026-05-01", to: "2026-07-29" }));
-  assert.throws(() => validatePlan({ plan: "hobby", from: "2026-05-01", to: "2026-07-30" }), /supports up to 90/);
-  assert.doesNotThrow(() => validatePlan({ plan: "professional", from: "2025-08-10", to: "2026-08-09" }));
+  const now = new Date("2026-08-09T12:00:00Z");
+  assert.doesNotThrow(() => validatePlan({ plan: "free", from: "2026-07-11", to: "2026-08-09" }, false, now));
+  assert.throws(() => validatePlan({ plan: "free", from: "2026-07-10", to: "2026-08-09" }, false, now), /supports up to 30/);
+  assert.doesNotThrow(() => validatePlan({ plan: "hobby", from: "2026-05-12", to: "2026-08-09" }, false, now));
+  assert.throws(() => validatePlan({ plan: "hobby", from: "2026-05-11", to: "2026-08-09" }, false, now), /supports up to 90/);
+  assert.doesNotThrow(() => validatePlan({ plan: "professional", from: "2025-08-10", to: "2026-08-09" }, false, now));
+});
+
+test("validates plan historical reach and future dates", () => {
+  const now = new Date("2026-08-09T12:00:00Z");
+  assert.throws(
+    () => validatePlan({ plan: "free", from: "2020-01-01", to: "2020-01-01" }, false, now),
+    /historical data starts at 2026-07-11/
+  );
+  assert.throws(
+    () => validatePlan({ plan: "free", from: "2026-08-09", to: "2026-08-10" }, false, now),
+    /current UTC date/
+  );
 });
 
 test("validates explicit UTC dates before plan lookup", () => {

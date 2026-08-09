@@ -188,7 +188,7 @@ function requestedWindowDays(opts) {
   return undefined;
 }
 
-function validatePlan(opts, professionalOnly = false) {
+function validatePlan(opts, professionalOnly = false, now = new Date()) {
   const windowDays = requestedWindowDays(opts);
   const rawPlan = opts.plan ? String(opts.plan).toLowerCase() : undefined;
   if (!rawPlan) return;
@@ -201,6 +201,17 @@ function validatePlan(opts, professionalOnly = false) {
   }
   if (windowDays !== undefined && windowDays > plan.maxDays) {
     throw new Error(`${rawPlan} plan supports up to ${plan.maxDays} historical days; requested ${windowDays}.`);
+  }
+  if (opts.from !== undefined && opts.to !== undefined) {
+    const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    const from = parseUtcDate(opts.from, "from");
+    const to = parseUtcDate(opts.to, "to");
+    const earliest = today - (plan.maxDays - 1) * 86_400_000;
+    if (to > today) throw new Error("--to must not be later than the current UTC date.");
+    if (from < earliest) {
+      const cutoff = new Date(earliest).toISOString().slice(0, 10);
+      throw new Error(`${rawPlan} plan historical data starts at ${cutoff} for the current UTC date.`);
+    }
   }
 }
 

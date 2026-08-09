@@ -35,6 +35,7 @@ Professional only:
 When the user has not specified a plan, prefer conservative explicit UTC windows:
 
 - keep inclusive `--from`/`--to` windows at 30 calendar days or fewer for Free-safe answers
+- keep the lower bound within the plan's historical reach from the current UTC day
 - ask before using a longer window
 - use `--plan hobby` for windows up to 90 days
 - use `--plan professional` for windows up to 365 days or raw evidence

@@ -96,13 +96,13 @@ Request body:
 ## Curl Examples
 
 ```bash
-curl "https://api.adanos.org/reddit/stocks/v1/trending?from=2026-07-01&to=2026-07-07&limit=5" \
+curl "https://api.adanos.org/reddit/stocks/v1/trending?from=YYYY-MM-DD&to=YYYY-MM-DD&limit=5" \
   -H "X-API-Key: $ADANOS_API_KEY"
 
-curl "https://api.adanos.org/news/stocks/v1/stock/NVDA?from=2026-07-01&to=2026-07-30" \
+curl "https://api.adanos.org/news/stocks/v1/stock/NVDA?from=YYYY-MM-DD&to=YYYY-MM-DD" \
   -H "X-API-Key: $ADANOS_API_KEY"
 
-curl "https://api.adanos.org/reddit/crypto/v1/token/BTC?from=2026-07-01&to=2026-07-07" \
+curl "https://api.adanos.org/reddit/crypto/v1/token/BTC?from=YYYY-MM-DD&to=YYYY-MM-DD" \
   -H "X-API-Key: $ADANOS_API_KEY"
 
 curl -X POST "https://api.adanos.org/sentiment/v1/analyze" \
